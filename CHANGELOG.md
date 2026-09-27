@@ -1,5 +1,20 @@
 # Değişiklik günlüğü
 
+## 2.1.0 — 27 Eylül 2026
+
+Mimlesek tarayıcıdan çıktı ve bir kasa edindi.
+
+- **Masaüstü uygulamaları:** Windows (`.exe`, `.msi`), macOS (Intel ve Apple Silicon için tek `.dmg`), Linux (`.AppImage`, `.deb`, `.rpm`)
+- **Android uygulaması:** `.apk` (arm64 ve armv7)
+- **İsteğe bağlı parola:** defter PBKDF2-SHA256 (600.000 tur) ile türetilen anahtarla AES-256-GCM kullanılarak şifrelenir; parola hiçbir yere yazılmaz
+- **Kilit ekranı:** açılışta parola sorar; "Parolamı unuttum" ile kilitli defter sıfırlanabilir
+- **Otomatik kilit:** 1, 5, 15 ya da 60 dakika hareketsizlikte; <kbd>L</kbd> ile anında kilit
+- **Yapıştırarak yedek yükleme:** dosya seçmenin zor olduğu cihazlar için
+- Masaüstü ve Android'de yedek, sistemin "Farklı kaydet" penceresiyle kaydedilir
+- Masaüstü ve Android paketleri yazı tiplerini içinde taşır; hiçbir ağ isteği yapmaz
+- GitHub Pages sürümü de yazı tiplerini kendi sunucusundan verir
+- `v*` etiketiyle dört platformun paketlerini derleyip yayınlayan GitHub Actions iş akışı
+
 ## 2.0.0 — 27 Eylül 2026
 
 Mimlesek tek sayfalık bir defterden tam bir uygulamaya dönüştü.

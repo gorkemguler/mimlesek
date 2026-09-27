@@ -12,16 +12,26 @@ npm test         # alan mantığı testleri
 npm run build    # dist/mimlesek.html tek dosya sürümü
 ```
 
-Bağımlılık yok, `npm install` gerekmiyor. Node 20 ve üstü yeterli.
+Web uygulaması için `npm install` gerekmiyor; Node 22 ve üstü yeterli.
+
+Masaüstü ya da Android kabuğunda çalışacaksan:
+
+```bash
+npm install                 # Tauri komut satırı aracı
+npm run masaustu            # geliştirme penceresi (web dosyalarındaki değişiklikler anında yansır)
+npm run masaustu:paket      # bu işletim sistemi için paket
+```
+
+Rust ve platform araçları için [Tauri ön koşulları](https://tauri.app/start/prerequisites/) sayfasına bak. Web tarafında bir özellik yazıyorsan kabuğa dokunmana gerek yok; iki tarafta aynı kod çalışır.
 
 Denemeler için `http://localhost:4173/?demo` adresini kullan. Demo defteri hiçbir şey kaydetmez; kendi defterine dokunmadan istediğin kadar mimleyebilir, affedebilir, imha edebilirsin.
 
 ## Operasyon kuralları
 
-1. **Bağımlılık eklemiyoruz.** Mimlesek saf HTML, CSS ve JavaScript. Bir kütüphane şart görünüyorsa önce bir ihbar açıp tartışalım.
+1. **Web tarafına bağımlılık eklemiyoruz.** Mimlesek saf HTML, CSS ve JavaScript. Tauri yalnızca paketleme aracıdır. Bir kütüphane şart görünüyorsa önce bir ihbar açıp tartışalım.
 2. **Veri cihazdan çıkmaz.** Sunucu çağrısı, analitik, takip pikseli ya da üçüncü taraf betiği eklenmez. Bu kuralın istisnası yok.
 3. **Kişisel veri alanı eklemiyoruz.** Adres, telefon, konum, fotoğraf gibi alanlar Mimlesek'i bir takip aracına çevirir. Bunlar kapsam dışı.
-4. **Hesaplar `src/model.js` içinde kalır.** DOM'a dokunmayan her şey orada ve testli olsun. Yeni bir hesap eklediysen `tests/model.test.mjs` içine testini de ekle.
+4. **Hesaplar `src/model.js`, şifreleme `src/kasa.js` içinde kalır.** DOM'a dokunmayan her şey orada ve testli olsun. Yeni bir hesap eklediysen `tests/` altına testini de ekle. Şifrelemeye dokunan her değişiklik test ister.
 5. **Türkçe, sade, kullanıcının gözünden.** Arayüz metinleri kısa ve doğrudan olsun. Düğme ne yapıyorsa onu söylesin: "Affet", ardından "Deniz affedildi."
 6. **İki tema, üç genişlik.** Değişikliğine açık ve koyu temada, telefon (~390 px), tablet ve masaüstü genişliğinde bak. Klavyeyle de dene.
 7. **Birleşik dosya kuralı.** `npm run build` modülleri tek dosyada birleştirir. Bu yüzden modüllerin üst düzey adları proje genelinde benzersiz olmalı ve `import` satırları tek bir noktalı virgülle bitmeli.

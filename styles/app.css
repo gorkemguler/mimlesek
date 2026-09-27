@@ -114,6 +114,7 @@ kbd {
 /* ---------- Üst bant ---------- */
 
 .topbar {
+  position: relative;
   display: flex; align-items: flex-end; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap;
   padding-bottom: 18px; border-bottom: 2px solid var(--ink);
 }
@@ -142,6 +143,11 @@ h1 {
 .nav a:hover { color: var(--ink); border-color: var(--rule-strong); }
 .nav a[aria-current="page"] { background: var(--ink); color: var(--sheet); }
 .nav-i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lock-btn {
+  display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 999px; cursor: pointer;
+  font-weight: 600; font-size: 14.5px; color: var(--stamp); background: var(--stamp-soft); border: 1px solid transparent;
+}
+.lock-btn:hover { border-color: var(--stamp); }
 
 .banner-slot:empty { display: none; }
 .banner-slot { display: grid; gap: 8px; margin-top: 16px; }
@@ -191,6 +197,36 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--s
 .hint { margin: 0; font-size: 13px; color: var(--stamp); }
 .form-error { margin: 0; font-size: 13.5px; color: var(--danger); font-weight: 600; }
 .fine { margin: 0; font-size: 13px; color: var(--ink-3); }
+.fine.warn { color: var(--warn); font-weight: 600; }
+.stack { display: grid; gap: 10px; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--ink-2); cursor: pointer; }
+.check input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--stamp); flex: none; }
+details.sub { border-top: 1px dashed var(--rule-strong); padding-top: 10px; }
+details.sub > summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--ink-2); }
+details.sub[open] > summary { margin-bottom: 10px; color: var(--ink); }
+input[type="password"] {
+  font-size: 15px; background: var(--paper); border: 1px solid var(--rule-strong);
+  border-radius: 8px; padding: 9px 11px; width: 100%; min-width: 0;
+}
+button:disabled { opacity: .6; cursor: progress; }
+
+/* ---------- Kilit ekranı ---------- */
+
+.kilit {
+  min-height: 100vh; min-height: 100dvh; display: grid; place-items: center;
+  padding-inline: 16px; padding-block: 32px;
+  background: repeating-linear-gradient(0deg, transparent 0 31px, color-mix(in srgb, var(--rule) 60%, transparent) 31px 32px), var(--paper);
+}
+.kilit-kart {
+  width: min(400px, 100%); display: grid; gap: 14px; justify-items: stretch; text-align: left;
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 18px; padding: 28px 24px 22px; box-shadow: var(--shadow-lg);
+}
+.kilit-seal { width: 84px; height: 84px; justify-self: center; margin-bottom: 4px; }
+.kilit-seal span { font-size: 74px; margin: -18px 0 0 -3px; }
+.kilit h1 { font-size: 34px; text-align: center; }
+.kilit .eyebrow { text-align: center; margin: 0; color: var(--danger); letter-spacing: .2em; }
+.kilit-alt { margin: -6px 0 4px; text-align: center; color: var(--ink-2); }
+.kilit-unuttum p { margin: 0 0 10px; font-size: 14px; color: var(--ink-2); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip, .level, .seg label { position: relative; }
@@ -590,6 +626,9 @@ dialog.dosya::backdrop { background: rgba(12, 16, 14, .5); }
   .nav a[aria-current="page"] { background: var(--stamp-soft); color: var(--stamp); }
   .nav-i { width: 22px; height: 22px; }
   .topbar { padding-bottom: 16px; }
+  .lock-btn { position: absolute; top: 0; right: 0; padding: 8px 10px; }
+  .lock-btn span { display: none; }
+  .masthead { padding-right: 48px; }
 }
 
 @media (max-width: 560px) {

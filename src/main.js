@@ -8,13 +8,16 @@ import {
 } from './model.js';
 import {
   readPrefs, writePrefs, readLocalPeople, clearLocalPeople,
-  createLocalStore, createMemoryStore, connectCloud, inArtifact, offerFile,
+  createLocalStore, createMemoryStore, connectCloud, inArtifact, inNativeShell, offerFile,
 } from './store.js';
+import {
+  MIN_PASSWORD, cryptoAvailable, hasVault, openVault, createVault, removeVault, destroyVault, createVaultStore,
+} from './kasa.js';
 import { demoPeople } from './demo.js';
 import { wireTips } from './charts.js';
 import { rowHTML, emptyRowsHTML, dosyaHTML, brifingHTML } from './views.js';
 
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 const VIEW_TITLES = { defter: 'Defter', brifing: 'Brifing', ayarlar: 'Ayarlar' };
 const STATUS_TABS = [
   { id: 'aktif', label: 'Mimliler' },
@@ -34,7 +37,7 @@ const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)'
 const S = {
   people: [],
   store: null,
-  storeState: 'local', // 'local' | 'cloud' | 'demo' | 'connecting'
+  storeState: 'local', // 'local' | 'vault' | 'cloud' | 'demo' | 'connecting'
   demo: false,
   view: 'defter',
   tab: 'aktif',
@@ -49,10 +52,17 @@ const S = {
   prefs: readPrefs(),
   undo: null,
   installEvent: null,
+  vault: null, // açık kasanın oturumu (parola varsa)
+  locked: false,
+  lastActivity: Date.now(),
+  unlockFailures: 0,
 };
 const SAMPLES = demoPeople().slice(0, 4);
 
 const el = {
+  wrap: $('.wrap'),
+  lock: $('#kilit'),
+  lockBtn: $('#btn-kilitle'),
   banner: $('#banner'),
   form: $('#form'),
   name: $('#f-name'),
@@ -221,6 +231,7 @@ function render() {
   if (S.view === 'ayarlar') renderSettings();
   renderLists();
   renderFooter();
+  el.lockBtn.hidden = !S.vault;
 }
 
 /** Veri dışarıdan değiştiğinde (bulut, içe aktarma, geri alma): açık dosya düzenlenmiyorsa onu da tazele. */
@@ -315,19 +326,21 @@ function renderLists() {
 const STORE_TEXT = {
   local: 'Defterin bu tarayıcının yerel deposunda duruyor. Sunucuya hiçbir şey gönderilmez. Tarayıcı verilerini silersen defter de gider; ara sıra yedek al.',
   cloud: 'Defterin sana özel bir alana kaydediliyor. Bu sayfayı açan başka biri senin mimlerini göremez.',
+  vault: 'Defterin bu cihazda parolayla şifreli duruyor. Anahtar yalnızca defter açıkken bellekte tutulur; sunucuya hiçbir şey gönderilmez.',
   demo: 'Demo defterindesin. Hiçbir değişiklik kaydedilmez; sayfayı yenileyince her şey başa döner.',
   connecting: 'Defter açılıyor…',
 };
 const STORE_SHORT = {
   local: 'Kayıt yeri: bu tarayıcı. Sunucu yok, iz yok.',
   cloud: 'Kayıt yeri: sana özel alan. Başkaları göremez.',
+  vault: 'Kayıt yeri: bu cihaz, parolayla şifreli.',
   demo: 'Demo modu: hiçbir şey kaydedilmez.',
   connecting: 'Defter açılıyor…',
 };
 
 function renderFooter() {
   const note = $('#store-note');
-  note.dataset.mode = S.storeState;
+  note.dataset.mode = S.storeState === 'vault' ? 'local' : S.storeState;
   note.textContent = STORE_SHORT[S.storeState];
 }
 
@@ -342,7 +355,9 @@ function renderSettings() {
 
   const artifact = inArtifact();
   $('#panel-theme').hidden = artifact;
-  $('#panel-install').hidden = artifact;
+  $('#panel-install').hidden = artifact || inNativeShell();
+  $('#yedek-uyari').hidden = !S.vault;
+  renderPasswordPanel();
   const tema = $(`input[name="tema"][value="${S.prefs.tema}"]`);
   if (tema) tema.checked = true;
 
@@ -707,13 +722,23 @@ $('#btn-copy').addEventListener('click', () => {
 $('#btn-import').addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   e.target.value = '';
-  if (!file) return;
+  if (file) importBackupText(await file.text());
+});
+
+$('#yapistir-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const area = $('#yapistir-metin');
+  if (!area.value.trim()) { area.focus(); return; }
+  if (importBackupText(area.value)) area.value = '';
+});
+
+function importBackupText(text) {
   let incoming;
   try {
-    incoming = parseBackup(await file.text());
+    incoming = parseBackup(text);
   } catch (err) {
     toast(err.message || 'Yedek okunamadı.');
-    return;
+    return false;
   }
   const before = new Map(S.people.map((p) => [p.id, JSON.stringify(p)]));
   const { list, added, updated } = mergePeople(S.people, incoming);
@@ -722,7 +747,8 @@ $('#btn-import').addEventListener('change', async (e) => {
   S.store.sync(changed, [], S.people).catch(onStoreError);
   renderAll();
   toast(added || updated ? `Yedek yüklendi: ${added} yeni dosya, ${updated} güncelleme.` : 'Yedekteki her şey zaten defterde.');
-});
+  return true;
+}
 
 document.querySelectorAll('input[name="tema"]').forEach((input) => {
   input.addEventListener('change', () => {
@@ -770,6 +796,215 @@ $('#wipe-form').addEventListener('submit', (e) => {
   toast('Defter imha edildi. Temiz bir sayfa.');
 });
 
+// ---------- Parola ve kilit ----------
+
+const setBusy = (form, busy, label) => {
+  const btn = form.querySelector('button[type="submit"]');
+  if (!btn) return;
+  if (busy) { btn.dataset.label = btn.textContent; btn.textContent = label; }
+  else if (btn.dataset.label) btn.textContent = btn.dataset.label;
+  btn.disabled = busy;
+};
+const showError = (id, msg) => { const n = $(id); n.textContent = msg; n.hidden = !msg; };
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function lockNow() {
+  S.locked = true;
+  S.vault = null;
+  S.people = [];
+  S.undo = null;
+  S.store = createLocalStore();
+  S.storeState = 'vault';
+  if (el.dosya.open) el.dosya.close();
+  rowCache.clear();
+  el.rows.innerHTML = '';
+  el.brifing.innerHTML = '';
+  $('#names').innerHTML = '';
+  resetComposer();
+  hideToast();
+  document.querySelectorAll('#view-ayarlar input[type="password"]').forEach((i) => { i.value = ''; });
+  el.wrap.hidden = true;
+  el.lock.hidden = false;
+  $('#kilit-parola').value = '';
+  showError('#kilit-hata', '');
+  document.title = 'Mimlesek · kilitli';
+  setTimeout(() => $('#kilit-parola').focus(), 0);
+}
+
+function enterVault(session, people) {
+  S.vault = session;
+  S.store = createVaultStore(session);
+  S.storeState = 'vault';
+  S.people = assignFileNos(people);
+  S.locked = false;
+  S.lastActivity = Date.now();
+  el.lock.hidden = true;
+  el.wrap.hidden = false;
+  route();
+  render();
+}
+
+$('#kilit-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.currentTarget;
+  const input = $('#kilit-parola');
+  if (!input.value) { input.focus(); return; }
+  showError('#kilit-hata', '');
+  setBusy(form, true, 'Açılıyor…');
+  try {
+    const { people, session } = await openVault(input.value);
+    S.unlockFailures = 0;
+    input.value = '';
+    enterVault(session, people);
+    toast('Defter açıldı.');
+  } catch (err) {
+    S.unlockFailures++;
+    await wait(Math.min(5000, 400 * S.unlockFailures));
+    showError('#kilit-hata', err && err.code === 'wrong_password'
+      ? 'Parola yanlış. Büyük/küçük harfe ve klavye diline dikkat et.'
+      : 'Defter açılamadı. Sayfayı yenileyip tekrar dene.');
+    input.select();
+  } finally {
+    setBusy(form, false);
+  }
+});
+
+$('#sifirla-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const input = $('#sifirla-input');
+  if (input.value.trim().toLocaleUpperCase('tr') !== 'İMHA') {
+    $('#sifirla-hata').hidden = false;
+    input.focus();
+    return;
+  }
+  $('#sifirla-hata').hidden = true;
+  input.value = '';
+  destroyVault();
+  S.locked = false;
+  S.vault = null;
+  S.store = createLocalStore();
+  S.storeState = 'local';
+  S.people = [];
+  el.lock.hidden = true;
+  el.wrap.hidden = false;
+  route();
+  render();
+  toast('Defter sıfırlandı. Yedeğin varsa Ayarlar → Yedek bölümünden yükleyebilirsin.');
+});
+
+function renderPasswordPanel() {
+  const panel = $('#panel-parola');
+  panel.hidden = inArtifact() || S.demo;
+  if (panel.hidden) return;
+  const supported = cryptoAvailable();
+  $('#parola-koy').hidden = !supported || !!S.vault;
+  $('#parola-acik').hidden = !S.vault;
+  $('#otomatik-kilit').value = String(S.prefs.otomatikKilit ?? 5);
+  $('#parola-durum').textContent = !supported
+    ? 'Bu tarayıcı şifrelemeyi desteklemiyor; parola özelliği burada kullanılamaz.'
+    : S.vault
+      ? 'Defterin şifreli. Uygulama her açıldığında parola sorulur. Parola hiçbir yerde saklanmaz.'
+      : 'Parola koyarsan defter bu cihazda şifrelenir ve her açılışta parola sorulur. Parola hiçbir yerde saklanmaz, bu yüzden unutulursa kurtarılamaz.';
+}
+
+function checkNewPassword(pw, again) {
+  if (pw.length < MIN_PASSWORD) return `Parola en az ${MIN_PASSWORD} karakter olmalı.`;
+  if (pw !== again) return 'İki parola birbirini tutmuyor.';
+  return '';
+}
+
+$('#parola-koy').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.currentTarget;
+  const pw = $('#pk-yeni').value;
+  const problem = checkNewPassword(pw, $('#pk-tekrar').value)
+    || (!$('#pk-onay').checked ? 'Devam etmek için kutucuğu işaretle.' : '');
+  showError('#pk-hata', problem);
+  if (problem) return;
+  setBusy(form, true, 'Şifreleniyor…');
+  try {
+    const session = await createVault(pw, S.people);
+    S.vault = session;
+    S.store = createVaultStore(session);
+    S.storeState = 'vault';
+    S.lastActivity = Date.now();
+    form.reset();
+    render();
+    toast('Parola koyuldu. Defter artık şifreli.');
+  } catch (err) {
+    showError('#pk-hata', err && err.code === 'local_unavailable'
+      ? 'Bu tarayıcı kayıt tutmaya izin vermiyor.'
+      : 'Parola koyulamadı. Tekrar dene.');
+  } finally {
+    setBusy(form, false);
+  }
+});
+
+$('#parola-degistir').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.currentTarget;
+  const pw = $('#pd-yeni').value;
+  const problem = !$('#pd-mevcut').value ? 'Mevcut parolanı yaz.' : checkNewPassword(pw, $('#pd-tekrar').value);
+  showError('#pd-hata', problem);
+  if (problem) return;
+  setBusy(form, true, 'Değiştiriliyor…');
+  try {
+    await openVault($('#pd-mevcut').value);
+    const session = await createVault(pw, S.people);
+    S.vault = session;
+    S.store = createVaultStore(session);
+    form.reset();
+    form.closest('details').open = false;
+    toast('Parola değiştirildi.');
+  } catch (err) {
+    showError('#pd-hata', err && err.code === 'wrong_password' ? 'Mevcut parola yanlış.' : 'Parola değiştirilemedi.');
+  } finally {
+    setBusy(form, false);
+  }
+});
+
+$('#parola-kaldir').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.currentTarget;
+  if (!$('#pr-mevcut').value) { showError('#pr-hata', 'Mevcut parolanı yaz.'); return; }
+  showError('#pr-hata', '');
+  setBusy(form, true, 'Kaldırılıyor…');
+  try {
+    await openVault($('#pr-mevcut').value);
+    removeVault(S.people);
+    S.vault = null;
+    S.store = createLocalStore();
+    S.storeState = 'local';
+    form.reset();
+    form.closest('details').open = false;
+    render();
+    toast('Parola kaldırıldı. Defter artık şifresiz.');
+  } catch (err) {
+    showError('#pr-hata', err && err.code === 'wrong_password' ? 'Mevcut parola yanlış.' : 'Parola kaldırılamadı.');
+  } finally {
+    setBusy(form, false);
+  }
+});
+
+$('#otomatik-kilit').addEventListener('change', (e) => {
+  S.prefs.otomatikKilit = Number(e.target.value) || 0;
+  writePrefs(S.prefs);
+  toast(S.prefs.otomatikKilit ? `Defter ${S.prefs.otomatikKilit} dakika hareketsizlikte kilitlenecek.` : 'Otomatik kilit kapatıldı.');
+});
+
+el.lockBtn.addEventListener('click', lockNow);
+$('#btn-kilitle-ayar').addEventListener('click', lockNow);
+
+for (const type of ['pointerdown', 'keydown', 'wheel', 'touchstart']) {
+  document.addEventListener(type, () => { S.lastActivity = Date.now(); }, { capture: true, passive: true });
+}
+function checkAutoLock() {
+  const minutes = Number(S.prefs.otomatikKilit) || 0;
+  if (S.vault && !S.locked && minutes > 0 && Date.now() - S.lastActivity > minutes * 60000) lockNow();
+}
+setInterval(checkAutoLock, 15000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkAutoLock(); });
+
 function applyTheme() {
   if (inArtifact()) return;
   const root = document.documentElement;
@@ -783,7 +1018,7 @@ function applyTheme() {
 document.addEventListener('keydown', (e) => {
   if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
   const t = e.target;
-  if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || el.dosya.open) return;
+  if (S.locked || t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || el.dosya.open) return;
   const key = e.key.toLocaleLowerCase('tr');
   if (key === 'n') {
     e.preventDefault();
@@ -794,6 +1029,9 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     go('defter');
     el.q.focus();
+  } else if (key === 'l' && S.vault) {
+    e.preventDefault();
+    lockNow();
   } else if (key === '1' || key === '2' || key === '3') {
     go(['defter', 'brifing', 'ayarlar'][Number(key) - 1]);
   }
@@ -802,7 +1040,7 @@ document.addEventListener('keydown', (e) => {
 // ---------- Açılış ----------
 
 function registerServiceWorker() {
-  if (inArtifact() || !('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
+  if (inArtifact() || inNativeShell() || !('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
   navigator.serviceWorker.register('./sw.js').catch(() => { /* çevrimdışı özellik isteğe bağlı */ });
 }
 
@@ -813,6 +1051,10 @@ function boot() {
     S.store = createMemoryStore();
     S.storeState = 'demo';
     S.people = demoPeople();
+  } else if (!inArtifact() && hasVault()) {
+    S.store = createLocalStore();
+    S.storeState = 'vault';
+    S.locked = true;
   } else {
     S.store = createLocalStore();
     S.people = assignFileNos(readLocalPeople());
@@ -827,9 +1069,13 @@ function boot() {
   route();
   render();
 
-  const fileNo = Number(params.get('dosya'));
-  const target = fileNo && S.people.find((p) => p.fileNo === fileNo);
-  if (target) openDosya(target.id);
+  if (S.locked) {
+    lockNow();
+  } else {
+    const fileNo = Number(params.get('dosya'));
+    const target = fileNo && S.people.find((p) => p.fileNo === fileNo);
+    if (target) openDosya(target.id);
+  }
 
   if (!S.demo && inArtifact()) startCloud();
   registerServiceWorker();

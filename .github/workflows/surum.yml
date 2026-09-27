@@ -1,0 +1,135 @@
+name: Sürüm paketleri
+
+# "v2.1.0" gibi bir etiket gönderildiğinde Windows, macOS, Linux ve Android paketlerini derler,
+# hepsini tek bir GitHub sürümüne ekler. Paketlerden biri bile başarısız olursa sürüm taslak kalır.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  surum:
+    name: Taslak sürüm
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.taslak.outputs.id }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: taslak
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --draft \
+              --title "Mimlesek ${GITHUB_REF_NAME#v}" \
+              --notes-file .github/SURUM_NOTU.md
+          fi
+          echo "id=$(gh release view "$GITHUB_REF_NAME" --json databaseId --jq .databaseId)" >> "$GITHUB_OUTPUT"
+
+  masaustu:
+    name: Masaüstü (${{ matrix.ad }})
+    needs: surum
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ad: macOS
+            runner: macos-latest
+            args: --target universal-apple-darwin
+            rust_targets: aarch64-apple-darwin,x86_64-apple-darwin
+          - ad: Windows
+            runner: windows-latest
+            args: ''
+            rust_targets: ''
+          - ad: Linux
+            runner: ubuntu-22.04
+            args: ''
+            rust_targets: ''
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_targets }}
+      - name: Linux sistem kütüphaneleri
+        if: matrix.ad == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - run: npm ci
+      - uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          releaseId: ${{ needs.surum.outputs.id }}
+          args: ${{ matrix.args }}
+
+  android:
+    name: Android
+    needs: surum
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Android NDK
+        run: |
+          if [ -n "$ANDROID_NDK_LATEST_HOME" ] && [ -d "$ANDROID_NDK_LATEST_HOME" ]; then
+            echo "NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+          else
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;27.2.12479018"
+            echo "NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
+          fi
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - run: npm ci
+      - name: Android projesini oluştur
+        run: |
+          npx tauri android init --ci
+          cp -r src-tauri/icons/android/. src-tauri/gen/android/app/src/main/res/
+      - name: APK derle (arm64 + armv7)
+        run: npx tauri android build --apk -t aarch64 -t armv7
+      - name: APK'yı imzala
+        # Her derlemede tek kullanımlık bir anahtar üretilir (hata ayıklama imzası).
+        # Bu yüzden yeni sürüm, eskisinin üzerine kurulamaz; önce yedek al, sonra kaldırıp kur.
+        run: |
+          UNSIGNED=$(find src-tauri/gen/android/app/build/outputs/apk -name "*release-unsigned.apk" | head -1)
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          keytool -genkeypair -keystore imza.jks -alias mimlesek -keyalg RSA -keysize 2048 -validity 3650 \
+            -storepass mimlesek -keypass mimlesek -dname "CN=Mimlesek, O=Mimlesek"
+          "$BT/zipalign" -p -f 4 "$UNSIGNED" hizali.apk
+          "$BT/apksigner" sign --ks imza.jks --ks-pass pass:mimlesek --key-pass pass:mimlesek \
+            --out "Mimlesek_${GITHUB_REF_NAME#v}_android.apk" hizali.apk
+          "$BT/apksigner" verify "Mimlesek_${GITHUB_REF_NAME#v}_android.apk"
+      - name: Sürüme ekle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" "Mimlesek_${GITHUB_REF_NAME#v}_android.apk" --clobber
+
+  yayinla:
+    name: Sürümü yayınla
+    needs: [masaustu, android]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$GITHUB_REF_NAME" --draft=false --repo "$GITHUB_REPOSITORY"

@@ -42,12 +42,14 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - name: Tek dosya sürümünü derle
-        run: npm run build
+      - name: Web paketini ve tek dosya sürümünü derle
+        run: |
+          npm run web
+          npm run build
       - name: Siteyi topla
         run: |
           mkdir -p _site/docs
-          cp -r index.html manifest.webmanifest sw.js src styles icons _site/
+          cp -r dist/web/. _site/
           cp docs/*.png _site/docs/
           cp dist/mimlesek.html _site/mimlesek-tek-dosya.html
       - uses: actions/configure-pages@v6

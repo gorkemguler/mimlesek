@@ -11,6 +11,7 @@
 <p align="center">
   <a href="https://gorkemguler.github.io/mimlesek/"><b>Uygulamayı aç</b></a> ·
   <a href="https://gorkemguler.github.io/mimlesek/?demo">Demo defterini gez</a> ·
+  <a href="https://github.com/gorkemguler/mimlesek/releases/latest">Masaüstü ve Android</a> ·
   <a href="#sahaya-iniş">Kurulum</a> ·
   <a href="#sıkça-sorulan-sorgulamalar">SSS</a>
 </p>
@@ -19,8 +20,9 @@
   <img alt="Lisans: MIT" src="https://img.shields.io/badge/lisans-MIT-5B3FB2">
   <img alt="Sunucu: yok" src="https://img.shields.io/badge/sunucu-yok-2C7A4C">
   <img alt="Takip çerezi: 0" src="https://img.shields.io/badge/takip%20%C3%A7erezi-0-2C7A4C">
-  <img alt="Bağımlılık: 0" src="https://img.shields.io/badge/ba%C4%9F%C4%B1ml%C4%B1l%C4%B1k-0-1A2330">
-  <img alt="PWA" src="https://img.shields.io/badge/PWA-%C3%A7evrimd%C4%B1%C5%9F%C4%B1%20%C3%A7al%C4%B1%C5%9F%C4%B1r-1A2330">
+  <img alt="Şifreleme: AES-256" src="https://img.shields.io/badge/%C5%9Fifreleme-AES--256-5B3FB2">
+  <img alt="Web bağımlılığı: 0" src="https://img.shields.io/badge/web%20ba%C4%9F%C4%B1ml%C4%B1l%C4%B1%C4%9F%C4%B1-0-1A2330">
+  <img alt="Platformlar" src="https://img.shields.io/badge/platform-Web%20%C2%B7%20Windows%20%C2%B7%20macOS%20%C2%B7%20Linux%20%C2%B7%20Android-1A2330">
 </p>
 
 ---
@@ -51,6 +53,8 @@ Herkesin hayatında biri vardır. Ödünç aldığı kitabı getirmeyen, "beş d
 | **Affet / Hesaplaş** | Dosya arşive kalkar. Gerekirse "Yeniden mimle" ile tekrar açılır. İnsanlar değişmez, dosyalar değişir. |
 | **Geri al** | Yanlışlıkla imha ettiğin dosya ya da sildiğin kayıt birkaç saniye içinde geri gelir. Sonrası tarih. |
 | **Yedek** | JSON olarak dışa aktar, başka cihazda içe aktar. Birleştirir, hiçbir şeyi ezmez. |
+| **Parolalı kasa** | İsteğe bağlı parola. Koyarsan defter cihazda AES-256 ile şifrelenir, her açılışta parola sorulur, hareketsiz kalınca kendiliğinden kilitlenir. |
+| **Her cephede** | Web, Windows, macOS, Linux ve Android. Aynı defter, aynı mühür, aynı kin. |
 | **Çevrimdışı çalışma** | Ana ekrana ekle; internet gitse de defter açık kalır. |
 | **Gece operasyonu** | Açık ve koyu tema, sistem ayarını da izler. |
 
@@ -64,6 +68,17 @@ Herkesin hayatında biri vardır. Ödünç aldığı kitabı getirmeyen, "beş d
     <td align="center"><sub>Durum brifingi. Saha ısınıyorsa sana söyler.</sub></td>
   </tr>
 </table>
+
+## Şifreli kasa
+
+Bazı dosyalar sadece gözlerin içindir. **Ayarlar → Parola** bölümünden bir parola koyduğunda:
+
+- Defter, parolandan türetilen bir anahtarla **AES-256-GCM** kullanılarak şifrelenir. Anahtar, **PBKDF2-SHA256** ile 600.000 turda türetilir; kaba kuvvetle deneyen biri her tahmin için bu turların hepsini baştan döner.
+- Parolan **hiçbir yere yazılmaz**, anahtar yalnızca defter açıkken bellekte durur. Şifresiz kopya silinir.
+- Uygulama her açılışta parola sorar. Seçtiğin süre boyunca dokunulmazsa (varsayılan 5 dakika) defter kendiliğinden kilitlenir. <kbd>L</kbd> tuşu ya da üstteki **Kilitle** düğmesi anında kilitler.
+- Parolayı istediğin zaman değiştirebilir ya da kaldırabilirsin.
+
+> **Uyarı:** Parolanı unutursan defteri kimse açamaz. Biz dahil. Teşkilatın arka kapısı yok; çünkü arka kapısı olan kasa, kasa değildir. Düzenli yedek al.
 
 ## Mim derecelendirme cetveli
 
@@ -107,7 +122,22 @@ npm start
 
 Sonra `http://localhost:4173` adresini aç. `npm install` bile gerekmiyor; bu projenin bağımlılığı yok. Node 20 ve üstü yeter.
 
-### C planı: Çanta boyu tek dosya
+### C planı: Masaüstü ve Android uygulaması
+
+[Son sürüm sayfasından](https://github.com/gorkemguler/mimlesek/releases/latest) cihazına uygun dosyayı indir:
+
+| Sistem | Dosya | Kurulum |
+|---|---|---|
+| Windows | `…_x64-setup.exe` ya da `.msi` | Çift tıkla. SmartScreen uyarırsa **Ek bilgi → Yine de çalıştır**. |
+| macOS | `…_universal.dmg` | Applications klasörüne sürükle. İlk açılışta **sağ tık → Aç**. |
+| Linux | `.AppImage`, `.deb`, `.rpm` | AppImage için `chmod +x` ve çalıştır; ya da paket yöneticinle kur. |
+| Android | `…_android.apk` | Telefonda aç, bilinmeyen kaynaklara izin ver, kur. |
+
+Paketler imzasız olduğu için Windows ve macOS ilk açılışta "tanımadığım geliştirici" diye uyarır. Haklılar, tanışmıyoruz. Kod açık; içi rahat etmeyen kendisi derleyebilir (bkz. [Teknik şartname](#teknik-şartname)).
+
+Android paketi her sürümde yeni bir anahtarla imzalanır, bu yüzden güncelleme eskisinin üzerine kurulmaz. Güncellemeden önce **Ayarlar → Yedek** ile yedek al, eski uygulamayı kaldır, yenisini kur ve yedeği yükle.
+
+### D planı: Çanta boyu tek dosya
 
 ```bash
 npm run build
@@ -127,13 +157,15 @@ npm run build
 | <kbd>N</kbd> | Yeni mim |
 | <kbd>/</kbd> | Defterde ara |
 | <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> | Defter, Brifing, Ayarlar |
+| <kbd>L</kbd> | Defteri kilitle (parola varsa) |
 | <kbd>Esc</kbd> | Açık dosyayı kapat |
 
 ## Sızıntı yok
 
 - Tüm veriler **tarayıcının yerel deposunda** durur. Sunucu yok, hesap yok, çerez yok, analitik yok.
 - Mimlediğin kişiye bildirim gitmez. Mimlesek ispiyoncu değildir.
-- Uygulama hiçbir veriyi dışarı göndermez; dışarıdan yüklenen tek şey Google Fonts'taki yazı tipleridir. İnanmıyorsan kaynak kodu oku. Teşkilatımız şeffaflığa inanır; bu işi şeffaf yapan tek teşkilat olabiliriz.
+- Uygulama hiçbir veriyi dışarı göndermez. Masaüstü ve Android sürümleri yazı tiplerini de içinde taşır, yani hiçbir ağ isteği yapmaz. İnanmıyorsan kaynak kodu oku. Teşkilatımız şeffaflığa inanır; bu işi şeffaf yapan tek teşkilat olabiliriz.
+- İstersen defteri parolayla şifreleyebilirsin (bkz. [Şifreli kasa](#şifreli-kasa)).
 - Tarayıcı verilerini silersen defter de gider. **Ayarlar → Yedek** ile ara sıra yedek al. İyi ajan sahaya yedeksiz çıkmaz.
 
 ## Sıkça sorulan sorgulamalar
@@ -153,6 +185,12 @@ Bir cihazda yedeği indir, diğerinde yükle. Eşitleme sunucusu yok, çünkü s
 **Kaç kişiyi mimleyebilirim?**
 Tarayıcı deposu dolana kadar, yani birkaç bin dosya. O sayıya ulaşırsan sorun Mimlesek'te olmayabilir.
 
+**Parolamı unuttum. Ne olacak?**
+Kilit ekranındaki **Parolamı unuttum** bölümünden kilitli defteri silip sıfırdan başlayabilirsin. Yedeğin varsa geri yüklersin. Yedeğin yoksa, o mimler artık sadece senin hafızanda yaşıyor. Belki de en doğrusu budur.
+
+**Masaüstü uygulaması neden bu kadar küçük?**
+Kendi tarayıcısını taşımıyor; işletim sisteminin hazır web görünümünü kullanıyor (Tauri). Casus dediğin az yer kaplar.
+
 **Affettiğim birini tekrar mimleyebilir miyim?**
 Evet. Dosya yeniden açılır, eski kayıtlar da yerinde durur.
 
@@ -164,11 +202,25 @@ Resmî mühürler mor mürekkeple basılır. Biz de ciddi görünmek istedik.
 
 ## Teknik şartname
 
-- Saf HTML, CSS ve JavaScript (ES modülleri). Framework yok, derleme adımı yok, `node_modules` yok.
-- PWA: `manifest.webmanifest` ve `sw.js` sayesinde kurulabilir, çevrimdışı çalışır.
+- Uygulamanın kendisi saf HTML, CSS ve JavaScript (ES modülleri). Framework yok, çalışma zamanı bağımlılığı yok.
+- Şifreleme tarayıcının yerleşik Web Crypto API'siyle yapılır: PBKDF2-SHA256 (600.000 tur) ve AES-256-GCM.
+- Masaüstü ve Android paketleri [Tauri 2](https://tauri.app) ile üretilir. Kabuk yalnızca pencereyi açar ve yedek dosyası için sistemin kaydet/aç pencerelerini sağlar.
+- PWA: `manifest.webmanifest` ve `sw.js` sayesinde tarayıcıdan da kurulabilir, çevrimdışı çalışır.
 - Testler Node'un yerleşik test koşucusuyla yazıldı: `npm test`.
-- `main` dalına her gönderimde GitHub Actions testleri koşar, geçerse siteyi GitHub Pages'e yayınlar.
+- `main` dalına her gönderimde GitHub Actions testleri koşar ve siteyi yayınlar. `v*` etiketi gönderildiğinde dört platformun paketlerini derleyip bir sürüme ekler.
 - claude.ai Artifact olarak da çalışır; orada defter, her izleyiciye özel bir veritabanı alanında tutulur.
+
+Masaüstü ve Android paketlerini kendin derlemek istersen:
+
+```bash
+npm install                 # yalnızca Tauri komut satırı aracı iner
+npm run masaustu            # geliştirme penceresi
+npm run masaustu:paket      # bu işletim sistemi için kurulum paketi
+npx tauri android init      # bir kez: Android projesini oluştur
+npm run android:paket       # APK (Android SDK, NDK ve JDK 17 gerekir)
+```
+
+Gereken araçlar için [Tauri'nin ön koşullar sayfasına](https://tauri.app/start/prerequisites/) bak: Rust her platformda, Linux'ta `webkit2gtk-4.1`, Windows'ta WebView2 (Windows 10/11'de hazır gelir).
 
 ```
 mimlesek/
@@ -179,15 +231,21 @@ mimlesek/
 │   ├── model.js            Mim, alarm, dosya no, yedek ve brifing hesapları
 │   ├── views.js            Defter satırı, kişi dosyası ve brifing şablonları
 │   ├── charts.js           Kütüphanesiz grafikler
-│   ├── store.js            Yerel depo, bulut deposu, dosya indirme
+│   ├── store.js            Yerel depo, bulut deposu, dosya kaydetme
+│   ├── kasa.js             Parolalı kasa: PBKDF2 + AES-GCM
 │   ├── demo.js             Kurgusal demo defteri
 │   └── util.js             Tarih ve Türkçe biçimlendirme yardımcıları
 ├── sw.js                   Çevrimdışı çalışma
 ├── manifest.webmanifest    Ana ekrana ekleme bilgileri
+├── src-tauri/              Masaüstü ve Android kabuğu (Rust, Tauri 2)
+│   ├── tauri.conf.json     Pencere, güvenlik politikası, paket ayarları
+│   ├── capabilities/       Kabuğun web tarafına verdiği izinler
+│   └── icons/              Her platform için ikonlar
 ├── scripts/
 │   ├── serve.mjs           Bağımlılıksız yerel sunucu
+│   ├── web-paketi.mjs      Paketlere giren web dosyaları + gömülü yazı tipleri
 │   └── tek-dosya.mjs       Tek dosya derleyicisi
-└── tests/model.test.mjs    Alan mantığı testleri
+└── tests/                  Alan mantığı ve şifreleme testleri
 ```
 
 ## Teşkilata katılım

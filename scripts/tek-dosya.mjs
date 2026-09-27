@@ -4,7 +4,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 
 const ROOT = new URL('..', import.meta.url);
-const ORDER = ['util', 'model', 'demo', 'store', 'charts', 'views', 'main'];
+const ORDER = ['util', 'model', 'demo', 'store', 'kasa', 'charts', 'views', 'main'];
 const read = (p) => readFile(new URL(p, ROOT), 'utf8');
 
 // Modüller aynı kapsamda birleşir: import satırları ve export anahtar kelimeleri çıkarılır.

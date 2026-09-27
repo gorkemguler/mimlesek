@@ -50,6 +50,7 @@
       <a href="#brifing" data-view="brifing"><svg class="nav-i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20h16"/><path d="M7 16v-5"/><path d="M12 16V6"/><path d="M17 16v-8"/></svg>Brifing</a>
       <a href="#ayarlar" data-view="ayarlar"><svg class="nav-i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h4"/><path d="M12 17h8"/><circle cx="10" cy="17" r="2"/></svg>Ayarlar</a>
     </nav>
+    <button type="button" class="lock-btn" id="btn-kilitle" hidden title="Defteri kilitle (L)"><svg class="nav-i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Kilitle</span></button>
   </header>
 
   <div id="banner" class="banner-slot"></div>
@@ -159,6 +160,63 @@
             <label class="btn file-btn" for="btn-import">Yedekten yükle<input type="file" id="btn-import" accept="application/json,.json"></label>
           </div>
           <p class="fine">Yedekten yükleme mevcut defterinle birleştirir. Aynı dosyanın yeni sürümü eskisinin yerine geçer; hiçbir şey silinmez.</p>
+          <p class="fine warn" id="yedek-uyari" hidden>Defterin parolalı olsa da yedek dosyası şifresiz olur. Onu güvenli bir yerde sakla.</p>
+          <details class="sub">
+            <summary>Yapıştırarak yükle</summary>
+            <form id="yapistir-form" class="stack" novalidate>
+              <label class="lbl" for="yapistir-metin">Yedek metni</label>
+              <textarea id="yapistir-metin" rows="4" spellcheck="false" placeholder='{"tur": "mimlesek-yedek", …}'></textarea>
+              <div class="actions"><button type="submit" class="btn">Yükle</button></div>
+            </form>
+          </details>
+        </section>
+
+        <section class="panel" id="panel-parola">
+          <h3>Parola</h3>
+          <p id="parola-durum"></p>
+          <form id="parola-koy" class="stack" novalidate hidden>
+            <div class="field-row">
+              <div class="field"><label class="lbl" for="pk-yeni">Yeni parola</label><input id="pk-yeni" type="password" autocomplete="new-password"></div>
+              <div class="field"><label class="lbl" for="pk-tekrar">Tekrar</label><input id="pk-tekrar" type="password" autocomplete="new-password"></div>
+            </div>
+            <label class="check"><input type="checkbox" id="pk-onay"><span>Parolamı unutursam defterin kurtarılamayacağını anlıyorum.</span></label>
+            <p class="form-error" id="pk-hata" role="alert" hidden></p>
+            <div class="actions"><button type="submit" class="btn primary">Parola koy</button></div>
+          </form>
+          <div id="parola-acik" class="stack" hidden>
+            <div class="field">
+              <label class="lbl" for="otomatik-kilit">Otomatik kilit</label>
+              <select id="otomatik-kilit">
+                <option value="0">Kapalı</option>
+                <option value="1">1 dakika hareketsizlikte</option>
+                <option value="5">5 dakika hareketsizlikte</option>
+                <option value="15">15 dakika hareketsizlikte</option>
+                <option value="60">1 saat hareketsizlikte</option>
+              </select>
+            </div>
+            <div class="actions"><button type="button" class="btn" id="btn-kilitle-ayar">Şimdi kilitle</button></div>
+            <details class="sub">
+              <summary>Parolayı değiştir</summary>
+              <form id="parola-degistir" class="stack" novalidate>
+                <div class="field"><label class="lbl" for="pd-mevcut">Mevcut parola</label><input id="pd-mevcut" type="password" autocomplete="current-password"></div>
+                <div class="field-row">
+                  <div class="field"><label class="lbl" for="pd-yeni">Yeni parola</label><input id="pd-yeni" type="password" autocomplete="new-password"></div>
+                  <div class="field"><label class="lbl" for="pd-tekrar">Tekrar</label><input id="pd-tekrar" type="password" autocomplete="new-password"></div>
+                </div>
+                <p class="form-error" id="pd-hata" role="alert" hidden></p>
+                <div class="actions"><button type="submit" class="btn primary">Parolayı değiştir</button></div>
+              </form>
+            </details>
+            <details class="sub">
+              <summary>Parolayı kaldır</summary>
+              <form id="parola-kaldir" class="stack" novalidate>
+                <p class="fine">Defter yeniden şifresiz saklanır ve açılışta parola sorulmaz.</p>
+                <div class="field"><label class="lbl" for="pr-mevcut">Mevcut parola</label><input id="pr-mevcut" type="password" autocomplete="current-password"></div>
+                <p class="form-error" id="pr-hata" role="alert" hidden></p>
+                <div class="actions"><button type="submit" class="btn danger">Parolayı kaldır</button></div>
+              </form>
+            </details>
+          </div>
         </section>
 
         <section class="panel" id="panel-theme">
@@ -182,6 +240,7 @@
             <div><dt><kbd>N</kbd></dt><dd>Yeni mim</dd></div>
             <div><dt><kbd>/</kbd></dt><dd>Defterde ara</dd></div>
             <div><dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Defter, Brifing, Ayarlar</dd></div>
+            <div><dt><kbd>L</kbd></dt><dd>Defteri kilitle (parola varsa)</dd></div>
             <div><dt><kbd>Esc</kbd></dt><dd>Açık dosyayı kapat</dd></div>
           </dl>
         </section>
@@ -212,6 +271,33 @@
     <p>Mimlesek kişisel bir defter. Kimseyi teşhir etmek için değil, içini dökmek için var.</p>
   </footer>
 </div>
+
+<section id="kilit" class="kilit" aria-labelledby="kilit-baslik" hidden>
+  <div class="kilit-kart">
+    <div class="seal kilit-seal" aria-hidden="true"><span>م</span></div>
+    <p class="eyebrow">Kişiye özel</p>
+    <h1 id="kilit-baslik">Defter kilitli</h1>
+    <p class="kilit-alt">Açmak için parolanı gir.</p>
+    <form id="kilit-form" class="stack" novalidate>
+      <label class="lbl" for="kilit-parola">Parola</label>
+      <input id="kilit-parola" type="password" autocomplete="current-password">
+      <p class="form-error" id="kilit-hata" role="alert" hidden></p>
+      <button class="btn-primary" type="submit" id="kilit-ac">Kilidi aç</button>
+    </form>
+    <details class="sub kilit-unuttum">
+      <summary>Parolamı unuttum</summary>
+      <p>Parola hiçbir yerde saklanmaz, bu yüzden kurtarılamaz. Yedeğin varsa defteri sıfırlayıp yedeği yükleyebilirsin.</p>
+      <form id="sifirla-form" class="stack" novalidate>
+        <label class="lbl" for="sifirla-input">Kilitli defteri silmek için <b>İMHA</b> yaz</label>
+        <div class="wipe-row">
+          <input id="sifirla-input" type="text" autocomplete="off" spellcheck="false">
+          <button class="btn danger" type="submit">Defteri sıfırla</button>
+        </div>
+        <p class="form-error" id="sifirla-hata" role="alert" hidden>Onay kelimesi eşleşmedi. Büyük harfle İMHA yaz.</p>
+      </form>
+    </details>
+  </div>
+</section>
 
 <datalist id="names"></datalist>
 <datalist id="group-list"></datalist>

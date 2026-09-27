@@ -1,7 +1,7 @@
 // Çevrimdışı çalışma: uygulama dosyaları önce ağdan, ağ yoksa önbellekten gelir.
 // Yazı tipleri ilk yüklemeden sonra önbellekten verilir.
 
-const VERSION = '2.0.0';
+const VERSION = '2.1.0';
 const APP_CACHE = `mimlesek-${VERSION}`;
 const FONT_CACHE = 'mimlesek-fonts';
 const SHELL = [
@@ -12,6 +12,7 @@ const SHELL = [
   './src/util.js',
   './src/model.js',
   './src/store.js',
+  './src/kasa.js',
   './src/demo.js',
   './src/charts.js',
   './src/views.js',

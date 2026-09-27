@@ -1,0 +1,56 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Mimlesek",
+  "version": "2.1.0",
+  "identifier": "io.github.gorkemguler.mimlesek",
+  "build": {
+    "frontendDist": "../dist/web",
+    "devUrl": "http://localhost:4173",
+    "beforeDevCommand": "node scripts/serve.mjs",
+    "beforeBuildCommand": "node scripts/web-paketi.mjs"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Mimlesek",
+        "width": 1200,
+        "height": 840,
+        "minWidth": 380,
+        "minHeight": 600,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self' ipc: http://ipc.localhost",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src": "'self' https://fonts.gstatic.com",
+        "img-src": "'self' data: blob:"
+      },
+      "dangerousDisableAssetCspModification": ["style-src"]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Lifestyle",
+    "publisher": "Görkem Güler",
+    "copyright": "© 2026 Görkem Güler. MIT lisansı.",
+    "shortDescription": "Kişisel mim defteri",
+    "longDescription": "Kimin ne yaptığını not et, derecelendir, sonra affet ya da hesaplaş. Veriler cihazından çıkmaz; istersen parolayla şifrelenir.",
+    "homepage": "https://gorkemguler.github.io/mimlesek/",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "linux": {
+      "deb": { "section": "utils" }
+    }
+  }
+}
