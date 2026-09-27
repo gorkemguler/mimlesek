@@ -1,0 +1,34 @@
+name: Hata ihbarı
+description: Bir şey bozuk mu? Teşkilata bildir.
+title: "[İHBAR] "
+labels: [hata]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        İhbarın için teşekkürler. **Gerçek kişilerin adlarını ve mimlerini buraya yapıştırma.** Bu sayfa herkese açık; Mimlesek'in aksine.
+  - type: textarea
+    id: ne-oldu
+    attributes:
+      label: Ne oldu?
+      placeholder: "Affet düğmesine bastım, kişi affedilmedi. Kin devam ediyor."
+    validations:
+      required: true
+  - type: textarea
+    id: ne-olmaliydi
+    attributes:
+      label: Ne olmalıydı?
+    validations:
+      required: true
+  - type: textarea
+    id: adimlar
+    attributes:
+      label: Nasıl tekrar ederiz?
+      placeholder: |
+        1. Demo defterini aç
+        2. ...
+  - type: input
+    id: cihaz
+    attributes:
+      label: Cihaz ve tarayıcı
+      placeholder: "iPhone 15, Safari 19 / Windows 11, Edge 140"

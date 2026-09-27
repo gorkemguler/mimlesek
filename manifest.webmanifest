@@ -1,0 +1,22 @@
+{
+  "name": "Mimlesek: kişisel mim defteri",
+  "short_name": "Mimlesek",
+  "description": "Kimin ne yaptığını not et, derecelendir, sonra affet ya da hesaplaş. Veriler cihazından çıkmaz.",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDF1EA",
+  "theme_color": "#5B3FB2",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Mim defteri", "url": "./#defter" },
+    { "name": "Durum brifingi", "url": "./#brifing" }
+  ]
+}

@@ -1,0 +1,25 @@
+name: Operasyon talebi
+description: Yeni bir özellik mi istiyorsun? Brifingini ver.
+title: "[TALEP] "
+labels: [öneri]
+body:
+  - type: textarea
+    id: sorun
+    attributes:
+      label: Hangi sorunu çözüyor?
+      placeholder: "Kuzenim her bayram aynı soruyu soruyor, tekrar eden mimler için kısayol lazım."
+    validations:
+      required: true
+  - type: textarea
+    id: fikir
+    attributes:
+      label: Önerin ne?
+    validations:
+      required: true
+  - type: checkboxes
+    id: etik
+    attributes:
+      label: Etik kontrol
+      options:
+        - label: Bu özellik kimseyi takip etmeye, ifşa etmeye ya da rahatsız etmeye yaramıyor.
+          required: true
