@@ -20,6 +20,7 @@
   <img alt="Lisans: MIT" src="https://img.shields.io/badge/lisans-MIT-5B3FB2">
   <img alt="Sunucu: yok" src="https://img.shields.io/badge/sunucu-yok-2C7A4C">
   <img alt="Takip çerezi: 0" src="https://img.shields.io/badge/takip%20%C3%A7erezi-0-2C7A4C">
+  <img alt="İnternet: gerekmez" src="https://img.shields.io/badge/internet-gerekmez-2C7A4C">
   <img alt="Şifreleme: AES-256" src="https://img.shields.io/badge/%C5%9Fifreleme-AES--256-5B3FB2">
   <img alt="Web bağımlılığı: 0" src="https://img.shields.io/badge/web%20ba%C4%9F%C4%B1ml%C4%B1l%C4%B1%C4%9F%C4%B1-0-1A2330">
   <img alt="Platformlar" src="https://img.shields.io/badge/platform-Web%20%C2%B7%20Windows%20%C2%B7%20macOS%20%C2%B7%20Linux%20%C2%B7%20Android-1A2330">
@@ -55,7 +56,7 @@ Herkesin hayatında biri vardır. Ödünç aldığı kitabı getirmeyen, "beş d
 | **Yedek** | JSON olarak dışa aktar, başka cihazda içe aktar. Birleştirir, hiçbir şeyi ezmez. |
 | **Parolalı kasa** | İsteğe bağlı parola. Koyarsan defter cihazda AES-256 ile şifrelenir, her açılışta parola sorulur, hareketsiz kalınca kendiliğinden kilitlenir. |
 | **Her cephede** | Web, Windows, macOS, Linux ve Android. Aynı defter, aynı mühür, aynı kin. |
-| **Çevrimdışı çalışma** | Ana ekrana ekle; internet gitse de defter açık kalır. |
+| **İnternetsiz çalışma** | Hiçbir sürüm internete muhtaç değil. Masaüstü ve Android ilk andan, web sürümü ilk açılıştan sonra bağlantısız çalışır. Yazı tipleri dahil her şey pakette. |
 | **Gece operasyonu** | Açık ve koyu tema, sistem ayarını da izler. |
 
 <table>
@@ -129,6 +130,7 @@ Sonra `http://localhost:4173` adresini aç. `npm install` bile gerekmiyor; bu pr
 | Sistem | Dosya | Kurulum |
 |---|---|---|
 | Windows | `…_x64-setup.exe` ya da `.msi` | Çift tıkla. SmartScreen uyarırsa **Ek bilgi → Yine de çalıştır**. |
+| Windows, bağlantısız makine | `…_x64_internetsiz-setup.exe` | Kurulum için de internet istemez; WebView2 içinde gelir (~130 MB). |
 | macOS | `…_universal.dmg` | Applications klasörüne sürükle. İlk açılışta **sağ tık → Aç**. |
 | Linux | `.AppImage`, `.deb`, `.rpm` | AppImage için `chmod +x` ve çalıştır; ya da paket yöneticinle kur. |
 | Android | `…_android.apk` | Telefonda aç, bilinmeyen kaynaklara izin ver, kur. |
@@ -164,7 +166,8 @@ npm run build
 
 - Tüm veriler **tarayıcının yerel deposunda** durur. Sunucu yok, hesap yok, çerez yok, analitik yok.
 - Mimlediğin kişiye bildirim gitmez. Mimlesek ispiyoncu değildir.
-- Uygulama hiçbir veriyi dışarı göndermez. Masaüstü ve Android sürümleri yazı tiplerini de içinde taşır, yani hiçbir ağ isteği yapmaz. İnanmıyorsan kaynak kodu oku. Teşkilatımız şeffaflığa inanır; bu işi şeffaf yapan tek teşkilat olabiliriz.
+- Uygulama hiçbir ağ isteği yapmaz: veri göndermez, dışarıdan yazı tipi ya da betik bile yüklemez. Yazı tipleri repoda ve her pakette hazır duruyor. Bunu testler de denetliyor (`tests/cevrimdisi.test.mjs`). İnanmıyorsan kaynak kodu oku. Teşkilatımız şeffaflığa inanır; bu işi şeffaf yapan tek teşkilat olabiliriz.
+- İnternet gerekmez. Masaüstü ve Android uygulamaları ilk andan, web sürümü ilk açılıştan sonra bağlantısız çalışır. Hava boşluklu (air-gapped) makineler için Windows'un internetsiz kurucusu var. Ajan dediğin, sinyal olmayan yerde de çalışır.
 - İstersen defteri parolayla şifreleyebilirsin (bkz. [Şifreli kasa](#şifreli-kasa)).
 - Tarayıcı verilerini silersen defter de gider. **Ayarlar → Yedek** ile ara sıra yedek al. İyi ajan sahaya yedeksiz çıkmaz.
 
@@ -235,6 +238,7 @@ mimlesek/
 │   ├── kasa.js             Parolalı kasa: PBKDF2 + AES-GCM
 │   ├── demo.js             Kurgusal demo defteri
 │   └── util.js             Tarih ve Türkçe biçimlendirme yardımcıları
+├── fonts/                  Pakete gömülü yazı tipleri ve OFL lisansları
 ├── sw.js                   Çevrimdışı çalışma
 ├── manifest.webmanifest    Ana ekrana ekleme bilgileri
 ├── src-tauri/              Masaüstü ve Android kabuğu (Rust, Tauri 2)
@@ -243,9 +247,10 @@ mimlesek/
 │   └── icons/              Her platform için ikonlar
 ├── scripts/
 │   ├── serve.mjs           Bağımlılıksız yerel sunucu
-│   ├── web-paketi.mjs      Paketlere giren web dosyaları + gömülü yazı tipleri
+│   ├── web-paketi.mjs      Paketlere giren web dosyalarını toplar
+│   ├── yazi-tipleri.mjs    Yazı tiplerini bir kez indirip fonts/ klasörüne koyar
 │   └── tek-dosya.mjs       Tek dosya derleyicisi
-└── tests/                  Alan mantığı ve şifreleme testleri
+└── tests/                  Alan mantığı, şifreleme ve internetsizlik testleri
 ```
 
 ## Teşkilata katılım
@@ -261,6 +266,8 @@ Katkı yapmak istersen önce [CONTRIBUTING.md](CONTRIBUTING.md) dosyasını oku.
 ## Lisans
 
 [MIT](LICENSE). Kopyala, değiştir, dağıt. Tek şartımız lisans metnini de yanında götürmen. Ajanlar evraksız seyahat etmez.
+
+Yazı tipleri (Bricolage Grotesque, Figtree, IBM Plex Mono, Reem Kufi) SIL Open Font License 1.1 ile dağıtılır; lisans metinleri [`fonts/lisanslar/`](fonts/lisanslar) klasöründe.
 
 ---
 

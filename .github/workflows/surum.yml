@@ -43,6 +43,13 @@ jobs:
             runner: windows-latest
             args: ''
             rust_targets: ''
+          # İnternetsiz kurulum: WebView2 çalışma zamanı kurucunun içine gömülür (yaklaşık 130 MB).
+          # Bağlantısı olmayan ya da WebView2'si eksik Windows makineleri için.
+          - ad: Windows internetsiz kurulum
+            runner: windows-latest
+            args: --bundles nsis --config src-tauri/tauri.windows-internetsiz.json
+            rust_targets: ''
+            desen: '[name]_[version]_[arch]_internetsiz[setup][ext]'
           - ad: Linux
             runner: ubuntu-22.04
             args: ''
@@ -72,6 +79,7 @@ jobs:
         with:
           releaseId: ${{ needs.surum.outputs.id }}
           args: ${{ matrix.args }}
+          releaseAssetNamePattern: ${{ matrix.desen }}
 
   android:
     name: Android

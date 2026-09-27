@@ -1,5 +1,16 @@
 # Değişiklik günlüğü
 
+## 2.1.1 — 27 Eylül 2026
+
+Her sürüm artık kesin olarak internetsiz.
+
+- Yazı tipleri repoya alındı (`fonts/`, OFL lisanslarıyla). Ne derleme ne uygulama Google Fonts'a bağlanır.
+- Web sürümü ilk açılışta yazı tipleri dahil her şeyi önbelleğe alır ve "internetsiz de açılır" diye haber verir. Ayarlarda internetsiz çalışma durumu görünür.
+- Tek dosya sürümü yazı tiplerini içine gömer (389 KB); herhangi bir bilgisayarda çift tıklayıp bağlantısız açılır.
+- Masaüstü ve Android güvenlik politikası artık yalnızca uygulamanın kendi dosyalarına izin veriyor.
+- Windows için internetsiz kurucu: WebView2 çalışma zamanını içinde taşır, kurulum sırasında bile bağlantı istemez.
+- İnternetsizliği denetleyen testler: dış kaynak yok, ağ isteği yok, önbellek listesi eksiksiz.
+
 ## 2.1.0 — 27 Eylül 2026
 
 Mimlesek tarayıcıdan çıktı ve bir kasa edindi.

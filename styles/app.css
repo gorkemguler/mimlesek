@@ -559,6 +559,8 @@ dialog.dosya::backdrop { background: rgba(12, 16, 14, .5); }
 .panel h3 { font-size: 17px; font-weight: 700; }
 .panel p { margin: 0; color: var(--ink-2); }
 .panel p.warn { color: var(--warn); font-weight: 600; }
+.panel p.offline-note { display: flex; gap: 8px; align-items: baseline; font-size: 14px; color: var(--ink); }
+.panel p.offline-note::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--good); transform: translateY(-1px); }
 .seg { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--paper); border: 1px solid var(--rule); justify-self: start; }
 .seg span { display: block; padding: 7px 14px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; color: var(--ink-2); }
 .seg input:checked + span { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }

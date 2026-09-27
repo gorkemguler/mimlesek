@@ -17,7 +17,7 @@ import { demoPeople } from './demo.js';
 import { wireTips } from './charts.js';
 import { rowHTML, emptyRowsHTML, dosyaHTML, brifingHTML } from './views.js';
 
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.1.1';
 const VIEW_TITLES = { defter: 'Defter', brifing: 'Brifing', ayarlar: 'Ayarlar' };
 const STATUS_TABS = [
   { id: 'aktif', label: 'Mimliler' },
@@ -374,6 +374,9 @@ function renderSettings() {
         : 'Tarayıcının menüsünde “Uygulamayı yükle” ya da “Ana ekrana ekle” seçeneğini ara.';
 
   $('#app-version').textContent = `v${APP_VERSION}`;
+  const offline = offlineText();
+  $('#set-offline').textContent = offline;
+  $('#set-offline').hidden = !offline;
 }
 
 // ---------- Kişi dosyası ----------
@@ -1041,7 +1044,31 @@ document.addEventListener('keydown', (e) => {
 
 function registerServiceWorker() {
   if (inArtifact() || inNativeShell() || !('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
-  navigator.serviceWorker.register('./sw.js').catch(() => { /* çevrimdışı özellik isteğe bağlı */ });
+  const firstInstall = !navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('./sw.js')
+    .then((reg) => {
+      const worker = reg.installing;
+      if (!firstInstall || !worker) return;
+      worker.addEventListener('statechange', () => {
+        if (worker.state === 'activated') {
+          toast('Mimlesek artık internetsiz de açılır.');
+          if (S.view === 'ayarlar') renderSettings();
+        }
+      });
+    })
+    .catch(() => { /* çevrimdışı özellik isteğe bağlı */ });
+}
+
+/** Uygulamanın internetsiz açılıp açılamayacağını anlatan kısa metin. */
+function offlineText() {
+  if (inNativeShell()) return 'Uygulama tamamen internetsiz çalışır; yazı tipleri dahil her şey içinde.';
+  if (inArtifact()) return '';
+  if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) {
+    return 'Bu dosya zaten internetsiz çalışır.';
+  }
+  return navigator.serviceWorker.controller
+    ? 'İnternetsiz kullanıma hazır: bağlantı olmasa da açılır.'
+    : 'İnternetsiz kullanım hazırlanıyor; sayfa bir kez tam yüklenince bağlantısız da açılır.';
 }
 
 function boot() {

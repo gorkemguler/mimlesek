@@ -2,7 +2,7 @@
 
 ## Veriler nerede?
 
-Mimlesek'in sunucusu yoktur. Defter, tarayıcının ya da uygulamanın yerel deposunda (`localStorage`; parola yoksa `mimlesek.v1`, varsa şifreli olarak `mimlesek.kasa` anahtarı) tutulur ve hiçbir yere gönderilmez. Web sürümü yazı tiplerini Google Fonts'tan ya da GitHub Pages'teki kopyasından yükler; masaüstü ve Android sürümleri yazı tiplerini içinde taşır.
+Mimlesek'in sunucusu yoktur. Defter, tarayıcının ya da uygulamanın yerel deposunda (`localStorage`; parola yoksa `mimlesek.v1`, varsa şifreli olarak `mimlesek.kasa` anahtarı) tutulur ve hiçbir yere gönderilmez. Uygulama hiçbir ağ isteği yapmaz; yazı tipleri dahil tüm dosyalar paketin ya da sitenin kendisindedir.
 
 ## Parola ve şifreleme
 
@@ -24,7 +24,7 @@ Bilinmesi gereken sınırlar:
 
 ## Masaüstü ve Android
 
-Masaüstü ve Android sürümleri [Tauri 2](https://tauri.app) kabuğuyla çalışır. Kabuk yalnızca şu izinleri verir: yedek için sistemin kaydet/aç pencereleri ve seçilen dosyaya metin yazma/okuma. Sıkı bir içerik güvenlik politikası (CSP) uygulanır; uygulama hiçbir ağ isteği yapmaz.
+Masaüstü ve Android sürümleri [Tauri 2](https://tauri.app) kabuğuyla çalışır. Kabuk yalnızca şu izinleri verir: yedek için sistemin kaydet/aç pencereleri ve seçilen dosyaya metin yazma/okuma. Sıkı bir içerik güvenlik politikası (CSP) uygulanır: yalnızca uygulamanın kendi dosyaları yüklenebilir, dış adreslere istek yapılamaz.
 
 Paketler kod imzasız dağıtılır. Kaynak koddan kendin derleyebilirsin; adımlar README'de.
 
