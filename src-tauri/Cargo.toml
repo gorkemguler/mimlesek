@@ -1,6 +1,6 @@
 [package]
 name = "mimlesek"
-version = "2.1.1"
+version = "2.2.0"
 description = "Mimlesek: kişisel mim defteri"
 authors = ["Görkem Güler"]
 license = "MIT"

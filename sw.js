@@ -1,7 +1,7 @@
 // Çevrimdışı çalışma: ilk ziyarette uygulamanın tamamı (yazı tipleri dahil) önbelleğe alınır.
 // Sonrasında dosyalar önce ağdan istenir; ağ yoksa önbellekten gelir.
 
-const VERSION = '2.1.1';
+const VERSION = '2.2.0';
 const APP_CACHE = `mimlesek-${VERSION}`;
 const SHELL = [
   './',

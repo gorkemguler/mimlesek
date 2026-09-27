@@ -56,9 +56,10 @@ export function rowHTML(p, { sample, today }) {
   </li>`;
 }
 
-export function emptyRowsHTML({ q, tab }) {
+export function emptyRowsHTML({ q, tab, fresh }) {
   let text;
   if (q.trim()) text = `“${esc(q.trim())}” ile eşleşen kayıt yok.`;
+  else if (fresh) text = 'Henüz kimseyi mimlemedin. Temiz bir sayfa.';
   else if (tab === 'aktif') text = 'Şu an mimli kimse yok. Ya herkes çok iyi davranıyor ya da sen çok affedicisin.';
   else if (tab === 'affedildi') text = 'Henüz kimseyi affetmedin.';
   else if (tab === 'kapandi') text = 'Hesaplaştığın kimse yok.';

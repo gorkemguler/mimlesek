@@ -13,11 +13,10 @@ import {
 import {
   MIN_PASSWORD, cryptoAvailable, hasVault, openVault, createVault, removeVault, destroyVault, createVaultStore,
 } from './kasa.js';
-import { demoPeople } from './demo.js';
 import { wireTips } from './charts.js';
 import { rowHTML, emptyRowsHTML, dosyaHTML, brifingHTML } from './views.js';
 
-const APP_VERSION = '2.1.1';
+const APP_VERSION = '2.2.0';
 const VIEW_TITLES = { defter: 'Defter', brifing: 'Brifing', ayarlar: 'Ayarlar' };
 const STATUS_TABS = [
   { id: 'aktif', label: 'Mimliler' },
@@ -57,7 +56,14 @@ const S = {
   lastActivity: Date.now(),
   unlockFailures: 0,
 };
-const SAMPLES = demoPeople().slice(0, 4);
+/**
+ * Demo defteri ve örnek kayıtlar yalnızca web sitesinde gösterilir. Kurulu uygulamalar (masaüstü, Android,
+ * tek dosya) ve claude.ai sürümü boş ve temiz başlar; demo kodu onların paketine hiç girmez.
+ */
+const DEMO_ALLOWED = !inNativeShell() && !inArtifact() && /^https?:$/.test(location.protocol);
+/** Kurulu uygulama: ilk açılışta karşılama ekranı ve parola önerisi gösterilir. */
+const INSTALLED_APP = inNativeShell() || location.protocol === 'file:';
+let SAMPLES = [];
 
 const el = {
   wrap: $('.wrap'),
@@ -222,7 +228,7 @@ window.addEventListener('hashchange', () => {
 // ---------- Çizim ----------
 
 function render() {
-  const real = S.people.length > 0;
+  const real = S.people.length > 0 || SAMPLES.length === 0;
   const src = real ? S.people : SAMPLES;
   const today = todayISO();
   renderBanner();
@@ -269,8 +275,10 @@ function renderDefter(src, sample, today) {
 
   el.ledgerNotice.innerHTML = sample
     ? `<div class="notice"><span><b>Defterin boş.</b> Aşağıdakiler örnek; ilk mimini koyduğunda kaybolurlar.</span>${
-      inArtifact() ? '' : '<a class="btn" href="?demo">Demo defterini gez</a>'}</div>`
-    : '';
+      DEMO_ALLOWED ? '<a class="btn" href="?demo">Demo defterini gez</a>' : ''}</div>`
+    : !S.people.length
+      ? '<div class="notice"><span><b>Defterin boş.</b> İlk mimini “Yeni mim” formundan koy. Kimi, neden, ne kadar?</span></div>'
+      : '';
 
   renderRows(src, sample, today);
 }
@@ -284,7 +292,7 @@ function renderRows(src, sample, today) {
 
   if (!items.length) {
     rowCache.clear();
-    el.rows.innerHTML = emptyRowsHTML({ q: S.q, tab: S.tab });
+    el.rows.innerHTML = emptyRowsHTML({ q: S.q, tab: S.tab, fresh: !S.people.length });
     return;
   }
   const nodes = items.map((p) => {
@@ -374,6 +382,14 @@ function renderSettings() {
         : 'Tarayıcının menüsünde “Uygulamayı yükle” ya da “Ana ekrana ekle” seçeneğini ara.';
 
   $('#app-version').textContent = `v${APP_VERSION}`;
+  // Kurulu uygulamada dış bağlantı yok: kaynak kod adresi tıklanamayan düz metin olarak gösterilir.
+  const sourceLink = $('#kaynak-link');
+  if (sourceLink && inNativeShell()) {
+    const plain = document.createElement('span');
+    plain.className = 'mono';
+    plain.textContent = sourceLink.textContent;
+    sourceLink.replaceWith(plain);
+  }
   const offline = offlineText();
   $('#set-offline').textContent = offline;
   $('#set-offline').hidden = !offline;
@@ -1071,9 +1087,64 @@ function offlineText() {
     : 'İnternetsiz kullanım hazırlanıyor; sayfa bir kez tam yüklenince bağlantısız da açılır.';
 }
 
-function boot() {
+// ---------- İlk açılış ----------
+
+function showWelcome() {
+  el.wrap.hidden = true;
+  $('#karsilama').hidden = false;
+  setTimeout(() => $('#kp-yeni').focus(), 0);
+}
+function finishWelcome() {
+  S.prefs.karsilandi = true;
+  writePrefs(S.prefs);
+  $('#karsilama').hidden = true;
+  el.wrap.hidden = false;
+  route();
+  render();
+}
+
+$('#karsilama-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.currentTarget;
+  const pw = $('#kp-yeni').value;
+  const problem = checkNewPassword(pw, $('#kp-tekrar').value)
+    || (!$('#kp-onay').checked ? 'Devam etmek için kutucuğu işaretle.' : '');
+  showError('#kp-hata', problem);
+  if (problem) return;
+  setBusy(form, true, 'Şifreleniyor…');
+  try {
+    const session = await createVault(pw, S.people);
+    S.vault = session;
+    S.store = createVaultStore(session);
+    S.storeState = 'vault';
+    S.lastActivity = Date.now();
+    form.reset();
+    finishWelcome();
+    toast('Parola koyuldu. Defterin şifreli; her açılışta parola sorulacak.');
+  } catch {
+    showError('#kp-hata', 'Parola koyulamadı. Tekrar dene ya da parolasız başla.');
+  } finally {
+    setBusy(form, false);
+  }
+});
+$('#karsilama-gec').addEventListener('click', () => {
+  finishWelcome();
+  toast('Parolasız başladın. İstediğin zaman Ayarlar’dan parola koyabilirsin.');
+});
+
+async function loadDemo() {
+  try {
+    return (await import('./demo.js')).demoPeople;
+  } catch {
+    return null; // tek dosya sürümü http üzerinden açılırsa demo dosyası yoktur
+  }
+}
+
+async function boot() {
   const params = new URLSearchParams(location.search);
-  S.demo = params.has('demo') && !inArtifact();
+  const demoPeople = DEMO_ALLOWED ? await loadDemo() : null;
+  if (demoPeople) SAMPLES = demoPeople().slice(0, 4);
+  S.demo = Boolean(demoPeople) && params.has('demo');
   if (S.demo) {
     S.store = createMemoryStore();
     S.storeState = 'demo';
@@ -1098,6 +1169,8 @@ function boot() {
 
   if (S.locked) {
     lockNow();
+  } else if (INSTALLED_APP && !S.prefs.karsilandi && !S.people.length && cryptoAvailable()) {
+    showWelcome();
   } else {
     const fileNo = Number(params.get('dosya'));
     const target = fileNo && S.people.find((p) => p.fileNo === fileNo);

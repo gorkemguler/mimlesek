@@ -227,6 +227,9 @@ button:disabled { opacity: .6; cursor: progress; }
 .kilit .eyebrow { text-align: center; margin: 0; color: var(--danger); letter-spacing: .2em; }
 .kilit-alt { margin: -6px 0 4px; text-align: center; color: var(--ink-2); }
 .kilit-unuttum p { margin: 0 0 10px; font-size: 14px; color: var(--ink-2); }
+.karsilama-gec { justify-self: center; font-size: 14.5px; padding: 10px 14px; }
+.karsilama-not { text-align: center; }
+.mono { font-family: var(--f-mono); font-size: .92em; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip, .level, .seg label { position: relative; }

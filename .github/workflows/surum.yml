@@ -43,7 +43,7 @@ jobs:
             runner: windows-latest
             args: ''
             rust_targets: ''
-          # İnternetsiz kurulum: WebView2 çalışma zamanı kurucunun içine gömülür (yaklaşık 130 MB).
+          # İnternetsiz kurulum: WebView2 çalışma zamanı kurucunun içine gömülür (yaklaşık 200 MB).
           # Bağlantısı olmayan ya da WebView2'si eksik Windows makineleri için.
           - ad: Windows internetsiz kurulum
             runner: windows-latest

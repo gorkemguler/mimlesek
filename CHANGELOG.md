@@ -1,5 +1,15 @@
 # Değişiklik günlüğü
 
+## 2.2.0 — 27 Eylül 2026
+
+Vitrin ile karargâh ayrıldı.
+
+- **İlk açılış karşılaması:** masaüstü, Android ve tek dosya sürümleri ilk açılışta parola koymayı önerir; "Parolasız başla" ile geçilebilir. Parola koyulduysa sonraki her açılışta kilit ekranı gelir.
+- **Demo yalnızca web sitesinde:** kurulu uygulamalarda demo defteri, örnek kayıtlar ve "Demo defterini gez" bağlantısı yok; demo kodu pakete hiç girmez.
+- Kurulu uygulamalar boş defterle "Henüz kimseyi mimlemedin" diye başlar.
+- Masaüstü ve Android paketinden web sitesine özgü dosyalar (PWA, paylaşım etiketleri) çıkarıldı; kaynak kod adresi tıklanmayan düz metin olarak gösterilir.
+- Paket içeriğini ve sürüm numaralarının tutarlılığını denetleyen testler.
+
 ## 2.1.1 — 27 Eylül 2026
 
 Her sürüm artık kesin olarak internetsiz.

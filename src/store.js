@@ -15,7 +15,7 @@ export const inNativeShell = () => !!(window.__TAURI__ || window.__TAURI_INTERNA
 
 // ---------- Tercihler (her cihaza özel küçük ayarlar) ----------
 
-const DEFAULT_PREFS = { tema: 'sistem', sonYedek: 0, otomatikKilit: 5 };
+const DEFAULT_PREFS = { tema: 'sistem', sonYedek: 0, otomatikKilit: 5, karsilandi: false };
 
 export function readPrefs() {
   try { return { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') }; }

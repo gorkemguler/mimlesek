@@ -258,7 +258,8 @@
 
         <section class="panel">
           <h3>Hakkında</h3>
-          <p>Mimlesek <span id="app-version"></span>. Açık kaynak, MIT lisanslı, sunucusuz. Kaynak kod <a href="https://github.com/gorkemguler/mimlesek" target="_blank" rel="noopener">GitHub’da</a>.</p>
+          <p>Mimlesek <span id="app-version"></span>. Açık kaynak, MIT lisanslı, sunucusuz ve internetsiz.</p>
+          <p class="fine">Kaynak kod: <a id="kaynak-link" href="https://github.com/gorkemguler/mimlesek" target="_blank" rel="noopener">github.com/gorkemguler/mimlesek</a></p>
         </section>
       </div>
     </section>
@@ -269,6 +270,26 @@
     <p>Mimlesek kişisel bir defter. Kimseyi teşhir etmek için değil, içini dökmek için var.</p>
   </footer>
 </div>
+
+<section id="karsilama" class="kilit" aria-labelledby="karsilama-baslik" hidden>
+  <div class="kilit-kart">
+    <div class="seal kilit-seal" aria-hidden="true"><span>م</span></div>
+    <p class="eyebrow">Kişiye özel</p>
+    <h1 id="karsilama-baslik">Hoş geldin</h1>
+    <p class="kilit-alt">Defterin yalnızca bu cihazda duracak. İstersen bir parola koy: defter şifrelenir ve her açılışta parola sorulur.</p>
+    <form id="karsilama-form" class="stack" novalidate>
+      <label class="lbl" for="kp-yeni">Parola</label>
+      <input id="kp-yeni" type="password" autocomplete="new-password">
+      <label class="lbl" for="kp-tekrar">Parola (tekrar)</label>
+      <input id="kp-tekrar" type="password" autocomplete="new-password">
+      <label class="check"><input type="checkbox" id="kp-onay"><span>Parolamı unutursam defterin kurtarılamayacağını anlıyorum.</span></label>
+      <p class="form-error" id="kp-hata" role="alert" hidden></p>
+      <button class="btn-primary" type="submit">Parola koy ve başla</button>
+    </form>
+    <button type="button" class="btn quiet karsilama-gec" id="karsilama-gec">Parolasız başla</button>
+    <p class="fine karsilama-not">Parolayı istediğin zaman Ayarlar’dan koyabilir, değiştirebilir ya da kaldırabilirsin.</p>
+  </div>
+</section>
 
 <section id="kilit" class="kilit" aria-labelledby="kilit-baslik" hidden>
   <div class="kilit-kart">

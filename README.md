@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://gorkemguler.github.io/mimlesek/"><b>Uygulamayı aç</b></a> ·
-  <a href="https://gorkemguler.github.io/mimlesek/?demo">Demo defterini gez</a> ·
+  <a href="https://gorkemguler.github.io/mimlesek/?demo">Demo defterini gez (web)</a> ·
   <a href="https://github.com/gorkemguler/mimlesek/releases/latest">Masaüstü ve Android</a> ·
   <a href="#sahaya-iniş">Kurulum</a> ·
   <a href="#sıkça-sorulan-sorgulamalar">SSS</a>
@@ -72,7 +72,7 @@ Herkesin hayatında biri vardır. Ödünç aldığı kitabı getirmeyen, "beş d
 
 ## Şifreli kasa
 
-Bazı dosyalar sadece gözlerin içindir. **Ayarlar → Parola** bölümünden bir parola koyduğunda:
+Bazı dosyalar sadece gözlerin içindir. Masaüstü ve Android uygulamaları ilk açılışta seni bir karşılama ekranıyla bekler ve parola koymayı önerir; istersen "Parolasız başla" diyip geçersin. Parolayı sonradan **Ayarlar → Parola** bölümünden de koyabilirsin. Parola koyduğunda:
 
 - Defter, parolandan türetilen bir anahtarla **AES-256-GCM** kullanılarak şifrelenir. Anahtar, **PBKDF2-SHA256** ile 600.000 turda türetilir; kaba kuvvetle deneyen biri her tahmin için bu turların hepsini baştan döner.
 - Parolan **hiçbir yere yazılmaz**, anahtar yalnızca defter açıkken bellekte durur. Şifresiz kopya silinir.
@@ -130,10 +130,12 @@ Sonra `http://localhost:4173` adresini aç. `npm install` bile gerekmiyor; bu pr
 | Sistem | Dosya | Kurulum |
 |---|---|---|
 | Windows | `…_x64-setup.exe` ya da `.msi` | Çift tıkla. SmartScreen uyarırsa **Ek bilgi → Yine de çalıştır**. |
-| Windows, bağlantısız makine | `…_x64_internetsiz-setup.exe` | Kurulum için de internet istemez; WebView2 içinde gelir (~130 MB). |
+| Windows, bağlantısız makine | `…_x64_internetsiz-setup.exe` | Kurulum için de internet istemez; WebView2 içinde gelir (~200 MB). |
 | macOS | `…_universal.dmg` | Applications klasörüne sürükle. İlk açılışta **sağ tık → Aç**. |
 | Linux | `.AppImage`, `.deb`, `.rpm` | AppImage için `chmod +x` ve çalıştır; ya da paket yöneticinle kur. |
 | Android | `…_android.apk` | Telefonda aç, bilinmeyen kaynaklara izin ver, kur. |
+
+Kurulu uygulamalar tertemiz başlar: demo defteri de örnek kayıt da yoktur, GitHub'a ya da başka bir yere hiç bağlanmazlar. İlk açılışta parola koymak isteyip istemediğini sorarlar. Demo defteri yalnızca [web sitesinde](https://gorkemguler.github.io/mimlesek/?demo) yaşar; orası vitrin, burası karargâh.
 
 Paketler imzasız olduğu için Windows ve macOS ilk açılışta "tanımadığım geliştirici" diye uyarır. Haklılar, tanışmıyoruz. Kod açık; içi rahat etmeyen kendisi derleyebilir (bkz. [Teknik şartname](#teknik-şartname)).
 
