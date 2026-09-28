@@ -70,6 +70,23 @@ Herkesin hayatında biri vardır. Ödünç aldığı kitabı getirmeyen, "beş d
   </tr>
 </table>
 
+## Masaüstü ve Android
+
+Aynı defter, her cephede. Kurulu uygulamalar internetsiz çalışır, ilk açılışta parola koymayı önerir ve demo defteriyle değil, tertemiz bir sayfayla başlar. Ajanın hangi cihazı kullandığı bizi ilgilendirmez; yeter ki mimi koysun.
+
+<p align="center">
+  <img src="docs/uygulama-macos.png" alt="macOS'ta Mimlesek: mim defteri, açık tema" width="100%">
+</p>
+<p align="center">
+  <img src="docs/uygulama-windows.png" alt="Windows'ta Mimlesek: durum brifingi, koyu tema" width="100%">
+</p>
+<p align="center">
+  <img src="docs/uygulama-android.png" alt="Android'de Mimlesek: ilk açılışta parola önerisi, mim defteri ve kilit ekranı" width="100%">
+</p>
+<p align="center"><sub>macOS'ta açık, Windows'ta koyu tema; Linux'ta da aynı pencere açılır. Android'de ilk açılış, defter ve kilit ekranı.</sub></p>
+
+<p align="center"><a href="https://github.com/gorkemguler/mimlesek/releases/latest"><b>Son sürümü indir</b></a></p>
+
 ## Şifreli kasa
 
 Bazı dosyalar sadece gözlerin içindir. Masaüstü ve Android uygulamaları ilk açılışta seni bir karşılama ekranıyla bekler ve parola koymayı önerir; istersen "Parolasız başla" diyip geçersin. Parolayı sonradan **Ayarlar → Parola** bölümünden de koyabilirsin. Parola koyduğunda:
